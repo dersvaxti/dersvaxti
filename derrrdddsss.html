@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hazırlıq üçün Ortaq Vaxt Seçimi</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --ink:#1c2333; --muted:#6b7280;
+    --line:#e5e9f2; --accent:#4f46e5; --accent2:#eef2ff;
+    --good:#059669; --bad:#dc2626; --warn:#d97706;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:22px 16px}
+  header .wrap{max-width:1200px;margin:auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  header h1{font-size:1.3rem}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  h2{font-size:1.05rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h2 .badge{background:var(--accent2);color:var(--accent);font-size:.75rem;padding:2px 10px;border-radius:20px;font-weight:600}
+  button{cursor:pointer;border:none;border-radius:10px;font-size:.9rem;font-weight:600;padding:10px 16px;transition:.15s}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-accent:hover{background:#4338ca}
+  .btn-ghost{background:var(--accent2);color:var(--accent)}
+  .btn-ghost:hover{background:#e0e7ff}
+  .btn-danger{background:#fee2e2;color:var(--bad)}
+  .btn-danger:hover{background:#fecaca}
+  .btn-sm{padding:6px 12px;font-size:.8rem;border-radius:8px}
+  input[type=text]{padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.95rem;width:100%;max-width:320px}
+  input[type=text]:focus{outline:2px solid var(--accent);border-color:transparent}
+  /* Students table */
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{background:#f8fafc;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
+  tr:hover td{background:#fafbff}
+  .tag{display:inline-block;background:#f1f5f9;border-radius:8px;padding:1px 8px;font-size:.8rem;margin:1px}
+  .tag-busy{background:#fee2e2;color:var(--bad)}
+  .empty{color:var(--muted);text-align:center;padding:20px;font-size:.9rem}
+  /* Availability editor */
+  .slotgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:5px;margin-top:8px}
+  .slot{border:1px solid var(--line);border-radius:8px;padding:6px 2px;text-align:center;font-size:.72rem;cursor:pointer;user-select:none;background:#fff}
+  .slot.busy{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .dayblock{margin-bottom:14px}
+  .dayblock h4{font-size:.85rem;margin-bottom:5px;color:var(--accent)}
+  .hint{font-size:.8rem;color:var(--muted);margin-top:4px}
+  .editor-head{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .toolbar select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:.9rem;background:#fff}
+  /* Summary grid */
+  .sumwrap{overflow-x:auto}
+  .sumgrid{display:grid;gap:3px;min-width:900px}
+  .sumgrid .cell{font-size:.68rem;padding:4px 2px;text-align:center;border-radius:5px;background:#fff;border:1px solid var(--line)}
+  .sumgrid .hd{font-weight:700;background:#f8fafc;font-size:.7rem}
+  .lvl0{background:#dcfce7!important;color:#166534;border-color:#bbf7d0!important}
+  .lvl1{background:#fef9c3!important;color:#854d0e;border-color:#fde68a!important}
+  .lvl2{background:#fed7aa!important;color:#9a3412;border-color:#fdba74!important}
+  .lvl3{background:#fecaca!important;color:#991b1b;border-color:#fca5a5!important}
+  .lvl4{background:#ef4444!important;color:#fff;border-color:#ef4444!important}
+  /* Results */
+  .result-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+  .result-item.best{border:2px solid var(--good);background:#f0fdf4}
+  .result-item h3{font-size:.95rem;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+  .statrow{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;margin:6px 0}
+  .statrow b{font-size:1rem}
+  .chip{padding:2px 8px;border-radius:14px;font-size:.78rem;font-weight:700}
+  .chip-good{background:#dcfce7;color:#166534}
+  .chip-bad{background:#fee2e2;color:#991b1b}
+  .names{font-size:.82rem;color:var(--muted)}
+  /* Final decision */
+  .finalbox{border:2px solid var(--good);background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:14px;padding:18px;margin:16px 0}
+  .hidden{display:none!important}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+  .modal{background:#fff;border-radius:14px;padding:20px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .modal p{margin-bottom:16px;font-size:.95rem}
+  .modal .acts{display:flex;gap:8px;justify-content:flex-end}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1c2333;color:#fff;padding:10px 16px;border-radius:10px;font-size:.88rem;z-index:110;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast button{background:transparent;color:#a5b4fc;padding:0;font-size:.88rem}
+  @media(max-width:640px){
+    header h1{font-size:1.05rem}
+    th,td{padding:7px 6px;font-size:.8rem}
+    .slotgrid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>📚 Hazırlıq üçün Ortaq Vaxt Seçimi</h1>
+      <div style="opacity:.85;font-size:.85rem;margin-top:2px">Şagirdlərin məşğulluğunu daxil edin — sayt ən uyğun ortaq vaxtı tapsın.</div>
+    </div>
+    <div style="font-size:.85rem;opacity:.9">Şagird sayı: <b id="hdrCount">0</b></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 1. STUDENTS PANEL -->
+  <div class="card">
+    <h2>👥 Şagirdlərin idarə edilməsi <span class="badge">Təşkilatçı paneli</span></h2>
+    <div id="addForm">
+      <div class="toolbar">
+        <input type="text" id="stName" placeholder="Ad və soyad daxil edin...">
+        <button class="btn-accent" onclick="addStudent()">+ Yeni şagird əlavə et</button>
+      </div>
+      <div class="hint">Şagird əlavə etdikdən sonra aşağıdakı siyahıdan onun gələ <b>bilmədiyi</b> gün və saatları işarələyin. İşarələnməyən saatlar gələ biləcəyi vaxt sayılır.</div>
+    </div>
+    <div id="editForm" class="hidden" style="border-top:1px dashed var(--line);margin-top:12px;padding-top:12px">
+      <div class="toolbar">
+        <input type="text" id="editName">
+        <button class="btn-accent btn-sm" onclick="saveEditName()">💾 Adı yadda saxla</button>
+        <button class="btn-ghost btn-sm" onclick="closeEditor()">✖ Bağla</button>
+        <button class="btn-danger btn-sm" onclick="deleteEditing()">🗑 Şagirdi sil</button>
+      </div>
+      <div id="editorGrid"></div>
+      <div class="hint">💡 Qırmızı işarələnən saatlar = şagirdin gələ <b>bilmədiyi</b> vaxt. Hamısını işarələmək/dəyişmək üçün günlərin üstündəki düymələrdən istifadə edin.</div>
+    </div>
+    <div style="text-align:right;margin-top:10px"><button class="btn-danger btn-sm" onclick="clearAll()">🗑 Hamısını sil</button></div>
+    <div style="overflow-x:auto;margin-top:8px">
+      <table id="stuTable">
+        <thead><tr><th>#</th><th>Ad və soyad</th><th>Məşğul olduğu vaxtlar</th><th>Əməliyyat</th></tr></thead>
+        <tbody id="stuBody"></tbody>
+      </table>
+      <div id="stuEmpty" class="empty">Hələ şagird əlavə edilməyib. Yuxarıdakı düymə ilə ilk şagirdi əlavə edin.</div>
+    </div>
+  </div>
+
+  <!-- 2. SUMMARY -->
+  <div class="card">
+    <h2>📊 Ümumi məşğulluq cədvəli <span class="badge">hər saat üçün məşğul şagird sayı</span></h2>
+    <div id="sumEmpty" class="empty">Şagird əlavə ediləndə cədvəl burada görünəcək.</div>
+    <div id="sumWrap" class="sumwrap hidden"><div class="sumgrid" id="sumGrid"></div>
+      <div class="hint" style="margin-top:8px">🟢 açıq-yaşıl: heç kim məşğul deyil &nbsp;·&nbsp; 🟡–🟠: bir qismi məşğuldur &nbsp;·&nbsp; 🔴 tünd: hamı məşğuldur</div>
+    </div>
+  </div>
+
+  <!-- 3. BEST TIME -->
+  <div class="card">
+    <h2>🎯 Ən uyğun vaxtın hesablanması</h2>
+    <div class="toolbar">
+      <label style="font-size:.9rem">Hazırlıq müddəti:</label>
+      <select id="durSel" onchange="calcResults()">
+        <option value="2">1 saat (2 interval)</option>
+        <option value="4" selected>2 saat (4 interval)</option>
+        <option value="6">3 saat (6 interval)</option>
+        <option value="8">4 saat (8 interval)</option>
+      </select>
+      <button class="btn-ghost" onclick="calcResults()">↻ Yenidən hesabla</button>
+    </div>
+    <div id="resNote"></div>
+    <div id="resList"></div>
+  </div>
+
+  <!-- 4. FINAL -->
+  <div id="finalWrap"></div>
+
+</div>
+
+<script>
+/* ---------------- Data layer ---------------- */
+const DAYS = ["B.e.","Ç.a.","Ç.","C.a.","C.","Ş.","B."];
+const DAYS_FULL = ["Bazar ertəsi","Çərşənbə axşamı","Çərşənbə","Cümə axşamı","Cümə","Şənbə","Bazar"];
+const SLOT_COUNT = 28; // 08:00 - 22:00, 30 dəq
+const KEY = 'hazirliq_vaxt_data_v1';
+let students = [];
+let editingId = null;
+let finalPick = null;
+
+function slotLabel(i){ const h=8+Math.floor(i/2), m=(i%2)*30; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({students, finalPick})); }catch(e){} }
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(KEY)||'null'); if(d){ students=d.students||[]; finalPick=d.finalPick||null; } }catch(e){}
+}
+let uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ---------------- UI helpers (confirm/alert əvəzinə) ---------------- */
+function askConfirm(msg, onYes, yesLabel){
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal"><p>${esc(msg)}</p><div class="acts"><button class="btn-ghost" data-r="0">Xeyr</button><button class="btn-danger" data-r="1">${esc(yesLabel||'Bəli, sil')}</button></div></div>`;
+  bg.addEventListener('click',e=>{
+    const r=e.target.dataset&&e.target.dataset.r;
+    if(r===undefined && e.target!==bg) return;
+    bg.remove(); if(r==='1') onYes();
+  });
+  document.body.appendChild(bg);
+}
+let toastTimer=null;
+function toast(msg, undoFn){
+  const old=document.getElementById('toast'); if(old) old.remove();
+  const t=document.createElement('div'); t.className='toast'; t.id='toast';
+  t.innerHTML=`<span>${esc(msg)}</span>`+(undoFn?'<button>Geri qaytar</button>':'');
+  if(undoFn) t.querySelector('button').onclick=()=>{ undoFn(); t.remove(); };
+  document.body.appendChild(t);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(), undoFn?6000:3000);
+}
+
+/* ---------------- Students CRUD ---------------- */
+function addStudent(){
+  const inp = document.getElementById('stName');
+  const name = inp.value.trim();
+  if(!name){ toast('Zəhmət olmasa ad və soyad daxil edin.'); return; }
+  students.push({id:uid(), name, busy:Array.from({length:7},()=>Array(SLOT_COUNT).fill(false))});
+  inp.value=''; save(); renderAll();
+}
+function removeStudent(id){
+  const s0 = students.find(x=>x.id===id); if(!s0) return;
+  askConfirm('"'+s0.name+'" adlı şagirdi silmək istəyirsiniz?', ()=>doRemove(id));
+}
+function doRemove(id){
+  const idx = students.findIndex(x=>x.id===id); if(idx<0) return;
+  const removed = students[idx];
+  students.splice(idx,1);
+  if(editingId===id){ editingId=null; document.getElementById('editForm').classList.add('hidden'); document.getElementById('addForm').classList.remove('hidden'); }
+  save(); renderAll();
+  toast('Şagird silindi', ()=>{ students.splice(Math.min(idx,students.length),0,removed); save(); renderAll(); });
+}
+function clearAll(){
+  if(!students.length) return;
+  askConfirm('Bütün şagirdlər ('+students.length+') silinsin?', ()=>{
+    const backup=students, fp=finalPick;
+    students=[]; finalPick=null; editingId=null;
+    document.getElementById('editForm').classList.add('hidden'); document.getElementById('addForm').classList.remove('hidden');
+    save(); renderAll();
+    toast('Siyahı təmizləndi', ()=>{ students=backup; finalPick=fp; save(); renderAll(); });
+  }, 'Bəli, hamısını sil');
+}
+function openEditor(id){
+  editingId=id;
+  const s = students.find(x=>x.id===id); if(!s) return;
+  document.getElementById('editName').value=s.name;
+  document.getElementById('addForm').classList.add('hidden');
+  document.getElementById('editForm').classList.remove('hidden');
+  renderEditor(s);
+  document.getElementById('editForm').scrollIntoView({behavior:'smooth'});
+}
+function closeEditor(){ editingId=null; document.getElementById('editForm').classList.add('hidden'); document.getElementById('addForm').classList.remove('hidden'); renderAll(); }
+function saveEditName(){
+  const s = students.find(x=>x.id===editingId); if(!s) return;
+  const v = document.getElementById('editName').value.trim();
+  if(!v){ toast('Ad boş ola bilməz.'); return; }
+  s.name=v; save(); renderAll();
+}
+function deleteEditing(){
+  const s = students.find(x=>x.id===editingId); if(!s) return;
+  removeStudent(s.id);
+}
+function toggleSlot(d,i){
+  const s = students.find(x=>x.id===editingId); if(!s) return;
+  s.busy[d][i]=!s.busy[d][i]; save(); renderEditor(s); renderSummary(); renderResults();
+}
+function setWholeDay(d,val){
+  const s = students.find(x=>x.id===editingId); if(!s) return;
+  for(let i=0;i<SLOT_COUNT;i++) s.busy[d][i]=val;
+  save(); renderEditor(s); renderSummary(); renderResults();
+}
+
+/* ---------------- Rendering ---------------- */
+function busyCount(s){ return s.busy.reduce((a,r)=>a+r.filter(Boolean).length,0); }
+function renderStudents(){
+  const tb=document.getElementById('stuBody');
+  document.getElementById('stuEmpty').style.display = students.length?'none':'block';
+  document.getElementById('hdrCount').textContent = students.length;
+  tb.innerHTML = students.map((s,idx)=>{
+    const bc = busyCount(s);
+    return `<tr>
+      <td>${idx+1}</td>
+      <td><b>${esc(s.name)}</b></td>
+      <td>${bc===0?'<span style="color:var(--muted);font-size:.82rem">bütün vaxtlar uyğundur</span>':
+        bc>=7*SLOT_COUNT?'<span class="tag tag-busy">heç bir vaxt uyğun deyil</span>':
+        `<span class="tag tag-busy">${bc} interval məşğul</span>`}</td>
+      <td><button class="btn-ghost btn-sm" onclick="openEditor('${s.id}')">✏️ Məşğulluq seç</button>
+          <button class="btn-danger btn-sm" onclick="removeStudent('${s.id}')">🗑 Sil</button></td>
+    </tr>`;
+  }).join('');
+}
+function renderEditor(s){
+  const g=document.getElementById('editorGrid');
+  g.innerHTML = s.busy.map((row,d)=>{
+    const busyN = row.filter(Boolean).length;
+    return `<div class="dayblock">
+      <div class="editor-head">
+        <h4>${DAYS_FULL[d]}</h4>
+        <button class="btn-ghost btn-sm" onclick="setWholeDay(${d},true)">Hamısını işarələ</button>
+        <button class="btn-ghost btn-sm" onclick="setWholeDay(${d},false)">Hamısını təmizlə</button>
+        <span class="hint">${busyN}/${SLOT_COUNT} məşğul</span>
+      </div>
+      <div class="slotgrid">${row.map((b,i)=>`<div class="slot ${b?'busy':''}" onclick="toggleSlot(${d},${i})">${slotLabel(i)}</div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function renderSummary(){
+  const wrap=document.getElementById('sumWrap'), empty=document.getElementById('sumEmpty');
+  if(!students.length){ wrap.classList.add('hidden'); empty.style.display='block'; return; }
+  wrap.classList.remove('hidden'); empty.style.display='none';
+  let html = `<div class="cell hd">Saat \\ Gün</div>` + DAYS.map(d=>`<div class="cell hd">${d}</div>`).join('');
+  for(let i=0;i<SLOT_COUNT;i++){
+    html += `<div class="cell hd">${slotLabel(i)}</div>`;
+    for(let d=0;d<7;d++){
+      const busyN = students.filter(s=>s.busy[d][i]).length;
+      let cls='';
+      if(busyN>0){
+        const p = busyN/students.length;
+        cls = p>=1?'lvl4': p>=0.75?'lvl3': p>=0.5?'lvl2': p>=0.25?'lvl1':'lvl0';
+      } else cls='lvl0';
+      html += `<div class="cell ${cls}" title="${DAYS_FULL[d]} ${slotLabel(i)} — ${busyN}/${students.length} şagird məşğuldur">${busyN||''}</div>`;
+    }
+  }
+  document.getElementById('sumGrid').innerHTML = html;
+  document.getElementById('sumGrid').style.gridTemplateColumns = `80px repeat(7,1fr)`;
+}
+function calcResults(){
+  const n = students.length; const list=document.getElementById('resList'), note=document.getElementById('resNote');
+  if(!n){ note.innerHTML='<div class="empty">Hesablama üçün əvvəlcə şagird əlavə edin.</div>'; list.innerHTML=''; return; }
+  note.innerHTML='';
+  const dur = parseInt(document.getElementById('durSel').value);
+  const variants=[];
+  for(let d=0;d<7;d++)for(let i=0;i<=SLOT_COUNT-dur;i++){
+    const absent = students.filter(s=>{ for(let k=i;k<i+dur;k++) if(s.busy[d][k]) return true; return false; });
+    variants.push({d,i,dur,absent,can:n-absent.length});
+  }
+  variants.sort((a,b)=> b.can-a.can || a.d-b.d || a.i-b.i);
+  const top = variants.slice(0,5);
+  const allOk = variants.find(v=>v.can===n);
+  let html='';
+  if(allOk){
+    html += `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.92rem">
+      ✅ <b>Xüsusi nəticə:</b> Bütün şagirdlər iştirak edə bilər! Məsələn: <b>${fmtVariant(allOk)}</b></div>`;
+  } else {
+    html += `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.92rem">
+      ⚠️ Hamı üçün uyğun vaxt tapılmadı. Ən çox şagirdin iştirak edə bildiyi variantlar təqdim edilir.</div>`;
+  }
+  html += top.map((v,idx)=>{
+    const absNames = v.absent.map(s=>esc(s.name)).join(', ');
+    return `<div class="result-item ${allOk&&v.can===n?'best':''}">
+      <h3><span>${idx===0?'🏆 ':''}${fmtVariant(v)}</span>
+        <span class="chip ${v.absent.length?'chip-bad':'chip-good'}">${v.absent.length?'⚠ '+v.absent.length+' nəfər gələ bilmir':'✓ hamı gələ bilər'}</span></h3>
+      <div class="statrow">
+        <span>👥 Ümumi şagird: <b>${n}</b></span>
+        <span style="color:var(--good)">✓ Gələ bilən: <b>${v.can}</b></span>
+        <span style="color:var(--bad)">✗ Gələ bilməyən: <b>${v.absent.length}</b></span>
+      </div>
+      ${v.absent.length?`<div class="names">İştirak edə bilməyənlər: ${absNames}</div>`:''}
+      <div style="margin-top:8px"><button class="btn-accent btn-sm" onclick="pickFinal(${v.d},${v.i},${v.dur})">✔ Yekun hazırlıq vaxtı kimi təsdiqlə</button></div>
+    </div>`;
+  }).join('');
+  list.innerHTML = html;
+}
+function fmtVariant(v){
+  const end = v.i+v.dur; // exclusive slot
+  const endH = 8+Math.floor(end/2), endM = (end%2)*30;
+  const endStr = String(endH).padStart(2,'0')+':'+String(endM).padStart(2,'0');
+  return `${DAYS_FULL[v.d]}, ${slotLabel(v.i)}–${endStr}`;
+}
+function pickFinal(d,i,dur){
+  const absent = students.filter(s=>{ for(let k=i;k<i+dur;k++) if(s.busy[d][k]) return true; return false; });
+  finalPick = {d,i,dur,absent:absent.map(s=>s.id)};
+  save(); renderFinal();
+  document.getElementById('finalWrap').scrollIntoView({behavior:'smooth'});
+}
+function clearFinal(){ finalPick=null; save(); renderFinal(); }
+function renderFinal(){
+  const w=document.getElementById('finalWrap');
+  if(!finalPick){ w.innerHTML=''; return; }
+  const abs = students.filter(s=>{ for(let k=finalPick.i;k<finalPick.i+finalPick.dur;k++) if(s.busy[finalPick.d][k]) return true; return false; });
+  w.innerHTML = `<div class="finalbox">
+    <h2>🏅 Yekun hazırlıq vaxtı <span class="badge">təsdiqlənib</span></h2>
+    <div style="font-size:1.15rem;font-weight:700;margin:6px 0">${fmtVariant(finalPick)}</div>
+    <div class="statrow">
+      <span>👥 Ümumi şagird: <b>${students.length}</b></span>
+      <span style="color:var(--good)">✓ Gələ bilən: <b>${students.length-abs.length}</b></span>
+      <span style="color:var(--bad)">✗ Gələ bilməyən: <b>${abs.length}</b></span>
+    </div>
+    ${abs.length?`<div class="names" style="margin:6px 0">İştirak edə bilməyənlər: ${abs.map(s=>esc(s.name)).join(', ')}</div>`:'<div style="color:var(--good);font-size:.9rem;margin:6px 0">Bütün şagirdlər iştirak edə bilər! 🎉</div>'}
+    <div style="margin-top:10px"><button class="btn-danger btn-sm" onclick="clearFinal()">Təsdiqi ləğv et</button></div>
+  </div>`;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderAll(){ renderStudents(); renderSummary(); calcResults(); renderFinal(); }
+document.getElementById('stName').addEventListener('keydown',e=>{ if(e.key==='Enter') addStudent(); });
+
+load(); renderAll();
+</script>
+</body>
+</html>
